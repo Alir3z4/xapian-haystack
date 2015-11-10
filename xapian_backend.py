@@ -484,7 +484,12 @@ class XapianSearchBackend(BaseSearchBackend):
                 document.add_term(document_id)
 
                 # finally, replace or add the document to the database
-                database.replace_document(document_id, document)
+                try:
+                    database.replace_document(document_id, document)
+                except xapian.InvalidArgumentError as exc:
+                    if str(exc).startswith('Term too long (> 245)'):
+                        sys.stderr.write('Term too long failure skipped.\n'
+                                         'Details """{0}"""\n'.format(str(exc)))
 
         except UnicodeDecodeError:
             sys.stderr.write('Chunk failed.\n')
